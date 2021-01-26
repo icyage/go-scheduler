@@ -1,0 +1,32 @@
+version: "3.7"
+services:
+  db:
+    image: postgres:11-alpine
+    restart: always
+    expose:
+      - "5432"
+    environment:
+      POSTGRES_PASSWORD: voyager
+      POSTGRES_USER: voyager
+      POSTGRES_DB: voyager
+  queue:
+    image: rabbitmq:3.7
+    restart: always
+    expose:
+      - "5672"
+    ports:
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: voyager
+      RABBITMQ_DEFAULT_PASS: voyager
+  voyager:
+    build: .
+    image: voyager:local
+    ports:
+      - "9000:9000"
+    depends_on:
+      - db
+      - queue
+    environment:
+      VOYAGER_POSTGRES_DSN: postgres://voyager:voyager@db/voyager?sslmode=disable
+      VOYAGER_AMQP_DSN: amqp://voyager:voyager@queue:5672/
